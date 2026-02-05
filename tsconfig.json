@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    /* === Output Directory === */
+    "outDir": "./dist",
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ],
+    "rootDir": "./src",
+    /* === Module Resolution === */
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2020",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    /* === Environment === */
+    "lib": [
+      "ES2020"
+    ],
+    "types": [
+      "node"
+    ],
+    /* === Strict Type Checking === */
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    /* === Source Mapping for Debugging === */
+    "sourceMap": true,
+    /* === Module Syntax === */
+    "resolveJsonModule": true,
+    "allowJs": false,
+    "isolatedModules": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
