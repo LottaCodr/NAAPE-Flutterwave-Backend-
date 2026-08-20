@@ -40,14 +40,14 @@ export interface IUser extends Document {
 }
 
 const userSchema = new Schema<IUser>({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: false },
+    name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 254 },
+    password: { type: String, required: false, select: false, minlength: 8, maxlength: 128 },
     role: { type: String, enum: ["admin", "editor", "member"], default: "member" },
     isVerified: { type: Boolean, default: false },
-    resetPasswordToken: { type: String },
-    resetPasswordExpire: { type: Date },
-    googleId: { type: String },
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpire: { type: Date, select: false },
+    googleId: { type: String, select: false },
     authProvider: { type: String, enum: ["local", "google"], default: "local" },
     profile: {
     image: {
@@ -88,7 +88,8 @@ userSchema.methods.generateAuthToken = function () {
         id: this._id,
         role: this.role,
     };
-    const secret = process.env.JWT_SECRET || "@NAAPEPASSWORDTOKEN@";
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error("JWT_SECRET is not configured");
     const token = jwt.sign(payload, secret, { expiresIn: "30d" });
     return token;
 };

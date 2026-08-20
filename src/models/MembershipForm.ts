@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IMembershipForm extends Document {
     name: string;
-    email,
+    email: string;
     tel: string;
     address: string;
     designation?: string;
@@ -21,7 +21,7 @@ export interface IMembershipForm extends Document {
 const MembershipFormSchema = new Schema<IMembershipForm>(
     {
         name: { type: String, required: true, trim: true },
-        email: { type: String, required: true, trim: true },
+        email: { type: String, required: true, trim: true, lowercase: true, maxlength: 254, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
         tel: { type: String, required: true, trim: true },
         address: { type: String, required: true, trim: true },
         designation: { type: String, default: "", trim: true },

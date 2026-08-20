@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1739" />
+  <meta name="description" content="NAAPE API developer portal — integrate membership, publishing, events, notifications, and Flutterwave payments." />
+  <title>NAAPE Developer Platform</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="announcement" role="status">
+    <div class="announcement-inner">
+      <span><i class="status-dot" aria-hidden="true"></i> NAAPE API v1 is available</span>
+      <a href="#changelog">View release notes <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="NAAPE Developer Platform home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M4 22.5 16 5l12 17.5M8.5 18h15M12 24.5h8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="m13 13 3-5 3 5-3 2-3-2Z" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-copy"><strong>NAAPE</strong><small>Developer Platform</small></span>
+    </a>
+    <div class="top-actions">
+      <a class="top-link" href="https://naape.org.ng" target="_blank" rel="noreferrer">NAAPE website <span aria-hidden="true">↗</span></a>
+      <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to dark theme" title="Change colour theme">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="menu-button" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span><span class="sr-only">Open navigation</span></button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Documentation navigation">
+      <div class="sidebar-scroll">
+        <nav>
+          <p class="nav-label">Get started</p>
+          <a class="side-link active" href="#overview"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10 10 3l7 7v7H3v-7Z"/></svg>Overview</a>
+          <a class="side-link" href="#quickstart"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 4-5 6 5 6m4-12 5 6-5 6"/></svg>Quick start</a>
+          <a class="side-link" href="#authentication"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 8V6.5a3.5 3.5 0 1 1 7 0V8M4 8h12v9H4V8Z"/></svg>Authentication</a>
+          <p class="nav-label">Reference</p>
+          <a class="side-link" href="#api-reference"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h12v14H4zM7 7h6M7 10h6M7 13h4"/></svg>API reference <span class="count">42</span></a>
+          <a class="side-link" href="#errors"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3 2.5 16h15L10 3Zm0 4.5v4m0 2.5v.1"/></svg>Errors</a>
+          <a class="side-link" href="#webhooks"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 6a5 5 0 0 1 8.5 1M14 14a5 5 0 0 1-8.5-1M4 4v4h4m8 8v-4h-4"/></svg>Webhooks</a>
+          <p class="nav-label">Resources</p>
+          <a class="side-link" href="/health"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10h4l2-5 4 10 2-5h4"/></svg>System health <span class="mini-dot" aria-hidden="true"></span></a>
+          <a class="side-link" href="#changelog"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 5v5l3 2M3 10a7 7 0 1 0 2-5M3 2v5h5"/></svg>Changelog</a>
+        </nav>
+        <div class="help-card"><span class="help-icon">?</span><div><strong>Need integration help?</strong><a href="mailto:info@naape.org.ng">Contact the NAAPE team</a></div></div>
+      </div>
+    </aside>
+    <button class="scrim" id="scrim" type="button" aria-label="Close navigation"></button>
+
+    <main id="main-content">
+      <section class="hero section-anchor" id="overview">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <div class="overline"><span>NAAPE API</span><i></i><span>Version 1.0</span></div>
+            <h1>Infrastructure for Nigeria’s <em>aviation community.</em></h1>
+            <p class="hero-lede">One secure API for member identity, professional publishing, industry events, notifications, and trusted payments.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#quickstart">Make your first request <span aria-hidden="true">→</span></a>
+              <a class="button button-secondary" href="#api-reference">Browse endpoints</a>
+            </div>
+            <ul class="trust-list" aria-label="Platform benefits"><li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10 3 3 7-7"/></svg>RESTful JSON</li><li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10 3 3 7-7"/></svg>JWT secured</li><li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10 3 3 7-7"/></svg>Flutterwave verified</li></ul>
+          </div>
+          <div class="flight-card" aria-label="Live platform status">
+            <div class="radar" aria-hidden="true"><span class="radar-line"></span><i class="plane">✦</i></div>
+            <div class="flight-top"><span class="mono-label">PLATFORM / LIVE</span><span class="flight-status" id="health-label"><i></i> Checking</span></div>
+            <div class="flight-main"><small>Service status</small><strong id="health-title">Contacting API…</strong><p id="health-copy">Running a live health check against this environment.</p></div>
+            <div class="flight-meta"><div><small>REGION</small><strong>West Africa</strong></div><div><small>PROTOCOL</small><strong>HTTPS</strong></div><div><small>FORMAT</small><strong>JSON</strong></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-section section-anchor" id="capabilities">
+        <div class="section-heading"><div><span class="kicker">Platform capabilities</span><h2>Everything your member experience needs.</h2></div><p>A coherent set of APIs replaces fragmented workflows and gives members, editors, and administrators the right access at the right time.</p></div>
+        <div class="capability-grid">
+          <article class="capability-card"><span class="card-number">01</span><div class="card-icon blue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div><h3>Identity & membership</h3><p>Local and Google sign-in, professional profiles, role controls, and membership applications.</p><a href="#api-reference" data-filter-link="Identity">Explore identity APIs <span>→</span></a></article>
+          <article class="capability-card"><span class="card-number">02</span><div class="card-icon amber"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></div><h3>Publishing & knowledge</h3><p>Editorial review, aviation publications, news, comments, and relevant member notifications.</p><a href="#api-reference" data-filter-link="Publishing">Explore publishing APIs <span>→</span></a></article>
+          <article class="capability-card"><span class="card-number">03</span><div class="card-icon green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM7 4v6m10-6v6M4 11h16"/></svg></div><h3>Events & payments</h3><p>Event registration, subscription tiers, hosted Flutterwave checkout, and transaction history.</p><a href="#api-reference" data-filter-link="Payments">Explore payment APIs <span>→</span></a></article>
+        </div>
+      </section>
+
+      <section class="content-section section-anchor" id="quickstart">
+        <div class="section-heading compact"><div><span class="kicker">Quick start</span><h2>First successful call in minutes.</h2></div><p>Start with a public request, then authenticate when you are ready to access member functionality.</p></div>
+        <div class="quickstart-layout">
+          <ol class="steps">
+            <li class="step active"><button type="button" data-step="1"><span>1</span><div><strong>Check the API</strong><small>Confirm connectivity and version</small></div></button></li>
+            <li class="step"><button type="button" data-step="2"><span>2</span><div><strong>Create an account</strong><small>Register a member identity</small></div></button></li>
+            <li class="step"><button type="button" data-step="3"><span>3</span><div><strong>Use your token</strong><small>Call a protected endpoint</small></div></button></li>
+          </ol>
+          <div class="code-window">
+            <div class="code-toolbar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><div class="code-tabs" role="tablist" aria-label="Code language"><button class="code-tab active" role="tab" aria-selected="true" data-lang="curl">cURL</button><button class="code-tab" role="tab" aria-selected="false" data-lang="javascript">JavaScript</button></div><button class="copy-button" type="button" data-copy-target="quick-code"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 6V3h10v10h-3M3 7h10v10H3z"/></svg><span>Copy</span></button></div>
+            <pre id="quick-code" aria-live="polite"><code></code></pre>
+            <div class="code-caption"><span><i></i> Public endpoint</span><span id="base-url-label"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-section section-anchor" id="authentication">
+        <div class="split-panel">
+          <div><span class="kicker">Authentication</span><h2>Secure by default,<br>simple by design.</h2><p>Protected routes use a signed JSON Web Token. Send the token returned by registration or login in the standard Authorization header.</p><div class="info-callout"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8v.1"/></svg><p><strong>Keep tokens private.</strong> Never place JWTs in source control, URLs, analytics events, or client-side logs.</p></div></div>
+          <div class="header-example"><div class="example-title"><span>Request header</span><button class="copy-button compact-copy" type="button" data-copy-text="Authorization: Bearer YOUR_JWT_TOKEN"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 6V3h10v10h-3M3 7h10v10H3z"/></svg><span>Copy</span></button></div><pre><code><span class="code-key">Authorization</span>: Bearer <span class="code-value">YOUR_JWT_TOKEN</span>
+<span class="code-key">Content-Type</span>: application/json</code></pre><div class="roles"><span>member</span><span>editor</span><span>admin</span></div></div>
+        </div>
+      </section>
+
+      <section class="content-section section-anchor" id="api-reference">
+        <div class="section-heading compact"><div><span class="kicker">API reference</span><h2>Find the endpoint you need.</h2></div><p>Search by task or filter by product area. Open an endpoint to see access requirements and purpose.</p></div>
+        <div class="reference-tools">
+          <label class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><span class="sr-only">Search endpoints</span><input id="endpoint-search" type="search" placeholder="Search endpoints, paths, or actions…" autocomplete="off" /><kbd>/</kbd></label>
+          <div class="filter-chips" id="filter-chips" aria-label="Filter endpoints"><button class="filter-chip active" type="button" data-filter="All">All</button><button class="filter-chip" type="button" data-filter="Identity">Identity</button><button class="filter-chip" type="button" data-filter="Publishing">Publishing</button><button class="filter-chip" type="button" data-filter="Events">Events</button><button class="filter-chip" type="button" data-filter="Payments">Payments</button><button class="filter-chip" type="button" data-filter="Admin">Admin</button></div>
+        </div>
+        <div class="endpoint-list" id="endpoint-list" aria-live="polite"></div>
+        <div class="empty-state" id="endpoint-empty" hidden><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="12"/><path d="m30 30 9 9"/></svg><strong>No endpoints found</strong><p>Try another search term or clear your filters.</p><button type="button" id="clear-search">Clear search</button></div>
+      </section>
+
+      <section class="content-section section-anchor" id="errors">
+        <div class="section-heading compact"><div><span class="kicker">Errors & recovery</span><h2>Errors you can act on.</h2></div><p>HTTP status codes carry meaning, while a stable response shape gives users a clear message and support teams a traceable request ID.</p></div>
+        <div class="error-layout"><div class="error-table" role="table" aria-label="Common API status codes"><div role="row"><span class="status-code success">2xx</span><div><strong>Success</strong><small>The request completed as expected.</small></div></div><div role="row"><span class="status-code warn">400</span><div><strong>Invalid request</strong><small>Review the message and submitted fields.</small></div></div><div role="row"><span class="status-code warn">401</span><div><strong>Authentication required</strong><small>Supply a valid, unexpired Bearer token.</small></div></div><div role="row"><span class="status-code danger">403</span><div><strong>Permission denied</strong><small>The account does not have the required role.</small></div></div><div role="row"><span class="status-code danger">429</span><div><strong>Rate limited</strong><small>Wait before retrying; inspect rate-limit headers.</small></div></div></div><div class="json-card"><div class="example-title"><span>Example error</span><span class="json-label">JSON</span></div><pre><code>{
+  <span class="code-key">"success"</span>: <span class="code-bool">false</span>,
+  <span class="code-key">"code"</span>: <span class="code-value">"INVALID_TOKEN"</span>,
+  <span class="code-key">"message"</span>: <span class="code-value">"Your session has expired"</span>,
+  <span class="code-key">"requestId"</span>: <span class="code-value">"c2ad…8f1"</span>
+}</code></pre></div></div>
+      </section>
+
+      <section class="content-section section-anchor" id="webhooks">
+        <div class="webhook-card"><div class="webhook-copy"><span class="kicker inverse">Webhooks</span><h2>Trust every payment event.</h2><p>Flutterwave events are signature-verified and processed idempotently. Configure your dashboard to send subscription events to the dedicated webhook URL.</p><div class="webhook-url"><span>POST</span><code id="webhook-url"></code><button class="copy-button dark-copy" type="button" data-copy-target="webhook-url" aria-label="Copy webhook URL"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 6V3h10v10h-3M3 7h10v10H3z"/></svg></button></div></div><div class="webhook-visual" aria-hidden="true"><div class="orbit one"></div><div class="orbit two"></div><div class="shield"><svg viewBox="0 0 48 48"><path d="M24 4 40 10v11c0 11-6.8 19-16 23C14.8 40 8 32 8 21V10l16-6Z"/><path d="m17 24 5 5 10-11"/></svg></div><span class="event-node node-a">payment.completed</span><span class="event-node node-b">subscription.cancelled</span></div></div>
+      </section>
+
+      <section class="content-section section-anchor" id="changelog">
+        <div class="section-heading compact"><div><span class="kicker">Changelog</span><h2>What’s new in v1.0.</h2></div><span class="release-date">August 2026</span></div>
+        <div class="release-card"><div class="release-badge">v1.0</div><div><h3>Secure platform foundation</h3><p>Production-ready authentication, member workflows, publishing, events, subscriptions, verified Flutterwave payments, structured errors, and health monitoring.</p><ul><li>Role-based access for members, editors, and administrators</li><li>Payment ownership and transaction integrity checks</li><li>Accessible developer portal and endpoint catalogue</li></ul></div></div>
+      </section>
+
+      <footer class="footer"><div><a class="brand footer-brand" href="/"><span class="brand-mark"><svg viewBox="0 0 32 32" fill="none"><path d="M4 22.5 16 5l12 17.5M8.5 18h15M12 24.5h8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><span class="brand-copy"><strong>NAAPE</strong><small>Developer Platform</small></span></a><p>Reliable digital infrastructure for Nigeria’s aviation professionals.</p></div><div class="footer-links"><div><strong>Platform</strong><a href="#quickstart">Quick start</a><a href="#api-reference">API reference</a><a href="/health">System health</a></div><div><strong>Organisation</strong><a href="https://naape.org.ng/about-naape/" target="_blank" rel="noreferrer">About NAAPE</a><a href="mailto:info@naape.org.ng">Support</a></div></div><div class="footer-bottom"><span>© 2026 National Association of Aircraft Pilots and Engineers</span><span>Built for safety, service, and progress.</span></div></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10 3 3 7-7"/></svg><span>Copied to clipboard</span></div>
+</body>
+</html>

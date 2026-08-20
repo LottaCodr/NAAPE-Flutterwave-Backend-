@@ -1,60 +1,35 @@
-// src/routes/paymentRoutes.ts
 import { Router } from "express";
-
 import { createPayment } from "../../controllers/payment.controller";
-import { createPlan,  initializeSubscriptionPayment, verifySubscriptionPayment, getSubscriptionStatus } from "../../controllers/subscription.controller";
+import {
+    createPlan,
+    initializeSubscriptionPayment,
+    verifySubscriptionPayment,
+    getSubscriptionStatus,
+} from "../../controllers/subscription.controller";
 import { chargeAndTokenize, createTokenizedCharge } from "../../controllers/token.controller";
 import { createRecipient, createTransfer } from "../../controllers/transfer.controller";
-import { handleWebhook } from "../../controllers/webhook";
 import { getEventPaymentStatus, registerEventPayment, verifyEventPayment } from "../../controllers/event.controller";
-import { protect } from "../../middleware/auth.middleware";
 import { getPaymentHistory } from "../../controllers/payment.history.controller";
+import { protect } from "../../middleware/auth.middleware";
+import { authorizeRoles } from "../../middleware/role.middleware";
 
 const router = Router();
 
-// Standard checkout payment link
-router.post("/create-link", createPayment);
-
-// Payment plans & subscriptions
-router.post("/plans",  createPlan);
-// router.post("/subscription", protect, createSubscription);
-router.post(
-    "/subscription/initialize-payment",
-    protect,
-    initializeSubscriptionPayment
-);
-router.get(
-    "/subscription/verify",
-    protect,
-    verifySubscriptionPayment
-);
-router.get(
-    "/subscription/status",
-    protect,
-    getSubscriptionStatus
-);
-
-// Tokenization
-router.post("/tokenize", chargeAndTokenize);
-router.post("/token-charges", createTokenizedCharge);
-
-// Payouts / Transfers
-router.post("/recipients", createRecipient);
-router.post("/transfers", createTransfer);
-
-//Events verify and register (authenticated users only)
+// Customer payment operations always require an authenticated account.
+router.post("/create-link", protect, createPayment);
+router.post("/subscription/initialize-payment", protect, initializeSubscriptionPayment);
+router.get("/subscription/verify", protect, verifySubscriptionPayment);
+router.get("/subscription/status", protect, getSubscriptionStatus);
 router.post("/events/register", protect, registerEventPayment);
-router.get("/events/verify", verifyEventPayment);
-
-//Payment History
+router.get("/events/verify", protect, verifyEventPayment);
+router.get("/events/status", protect, getEventPaymentStatus);
 router.get("/history/:userId", protect, getPaymentHistory);
 
-//Event payment status (authenticated users only)
-router.get("/events/status", protect, getEventPaymentStatus);
-
-
-
-// Webhooks
-router.post("/webhook", handleWebhook);
+// High-risk financial operations are strictly administrator-only.
+router.post("/plans", protect, authorizeRoles("admin"), createPlan);
+router.post("/tokenize", protect, authorizeRoles("admin"), chargeAndTokenize);
+router.post("/token-charges", protect, authorizeRoles("admin"), createTokenizedCharge);
+router.post("/recipients", protect, authorizeRoles("admin"), createRecipient);
+router.post("/transfers", protect, authorizeRoles("admin"), createTransfer);
 
 export default router;

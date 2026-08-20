@@ -1,71 +1,69 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import { Subscription } from "../models/Subscription";
-import { savePaymentHistory } from "../utils/savePaymentHistory";
+import PaymentHistory from "../models/PaymentHistory";
+
+const safeEqual = (left: string, right: string) => {
+    const a = Buffer.from(left);
+    const b = Buffer.from(right);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+};
 
 export const handleWebhook = async (req: Request, res: Response) => {
-    try {
-        const signature = req.headers["verify-hash"] as string | undefined;
+    const signature = String(req.headers["verif-hash"] || req.headers["verify-hash"] || "");
+    const webhookSecret = process.env.FLW_HASH || "";
+    if (!signature || !webhookSecret || !safeEqual(signature, webhookSecret)) {
+        return res.status(401).json({ message: "Invalid webhook signature" });
+    }
 
-        if (!signature || signature !== process.env.FLW_HASH) {
-            return res.status(401).send("unauthorised");
+    try {
+        const event = req.body;
+        if (!event || typeof event.event !== "string" || !event.data) {
+            return res.status(400).json({ message: "Invalid webhook payload" });
         }
 
-        const event = req.body;
-
-        /**
-         * SUBSCRIPTION PAYMENT COMPLETED
-         */
         if (event.event === "subscription.payment.completed") {
             const data = event.data;
-
             const subscription = await Subscription.findOne({
-                flutterwaveSubscriptionId: data.subscription_id,
+                $or: [
+                    { flutterwaveSubscriptionId: String(data.subscription_id || "") },
+                    { userId: data.meta?.userId, planId: data.meta?.planId },
+                ],
             });
 
-            if (!subscription) {
-                return res.status(404).json({ error: "Subscription not found" });
-            }
+            // Acknowledge unknown records so Flutterwave does not retry forever.
+            if (!subscription) return res.status(200).json({ status: "ignored" });
 
-            // Idempotency check
-            if (subscription.status === "active") {
-                return res.json({ status: "already processed" });
-            }
-
-            // Activate subscription
             subscription.status = "active";
-            subscription.startDate = new Date();
+            subscription.startDate = subscription.startDate || new Date();
+            if (data.subscription_id) subscription.flutterwaveSubscriptionId = String(data.subscription_id);
             await subscription.save();
 
-            // Save payment history
-            await savePaymentHistory(
-                data.customer.id,
-                "subscription",
-                data.tx_ref,
-                data.amount,
-                data.currency,
-                "success",
+            await PaymentHistory.updateOne(
+                { transactionId: String(data.id || data.tx_ref) },
                 {
-                    subscriptionId: data.subscription_id,
-                }
+                    $setOnInsert: {
+                        user: subscription.userId,
+                        type: "subscription",
+                        transactionId: String(data.id || data.tx_ref),
+                        amount: Number(data.amount),
+                        currency: String(data.currency || subscription.currency).toUpperCase(),
+                        status: "successful",
+                        metadata: { subscriptionId: subscription._id, txRef: data.tx_ref },
+                    },
+                },
+                { upsert: true }
             );
-        }
-
-        /**
-         * SUBSCRIPTION CANCELLED
-         */
-        if (event.event === "subscription.cancelled") {
+        } else if (event.event === "subscription.cancelled") {
             await Subscription.findOneAndUpdate(
-                { flutterwaveSubscriptionId: event.data.subscription_id },
-                {
-                    status: "cancelled",
-                    endDate: new Date(),
-                }
+                { flutterwaveSubscriptionId: String(event.data.subscription_id) },
+                { status: "cancelled", endDate: new Date(), isActive: false }
             );
         }
 
-        return res.json({ status: "ok" });
+        return res.status(200).json({ status: "ok" });
     } catch (error) {
-        console.error("Webhook error:", error);
-        return res.status(500).json({ error: "Webhook processing failed" });
+        console.error("Webhook processing failed:", error);
+        return res.status(500).json({ message: "Webhook processing failed" });
     }
 };

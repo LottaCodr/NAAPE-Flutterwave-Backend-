@@ -3,7 +3,14 @@ import { Request, Response } from "express";
 
 export const createPayment = async (req: Request, res: Response) => {
     try {
-        const { amount, email, name } = req.body;
+        const amount = Number(req.body.amount);
+        const user = req.user;
+        if (!user) return res.status(401).json({ message: "Authentication required" });
+        if (!Number.isFinite(amount) || amount <= 0 || amount > 100_000_000) {
+            return res.status(400).json({ message: "A valid payment amount is required" });
+        }
+        const email = user.email;
+        const name = user.name;
 
         // Generate a unique reference
         const tx_ref = `tx-${Date.now()}`;

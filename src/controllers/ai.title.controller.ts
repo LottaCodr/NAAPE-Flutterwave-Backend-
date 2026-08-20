@@ -4,10 +4,13 @@ export async function suggestTitle(req, res) {
     try {
         const { type, content } = req.body;
 
-        if (!type || !content) {
+        if (typeof type !== "string" || typeof content !== "string" || !type.trim() || content.trim().length < 20) {
             return res.status(400).json({
-                error: "type and content fields are required",
+                error: "type and at least 20 characters of content are required",
             });
+        }
+        if (content.length > 8_000) {
+            return res.status(413).json({ error: "content must not exceed 8,000 characters" });
         }
 
         const titles = await generateTitles(type, content);

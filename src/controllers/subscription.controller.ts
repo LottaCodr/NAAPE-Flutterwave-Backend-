@@ -138,6 +138,11 @@ export const initializeSubscriptionPayment = async (req: Request, res: Response)
                 name: user.name,
                 phone_number: user.phone,
             },
+            meta: {
+                userId: String(user._id),
+                planId: String(plan._id),
+                tier: plan.name,
+            },
             customizations: {
                 title: `${plan.name} Subscription`,
                 description: "Recurring subscription payment",
@@ -207,11 +212,14 @@ export async function createSubscriptionPlan(req: Request, res: Response) {
         features = [],
     } = req.body;
 
-    if (!name || !flutterwavePlanId || !price) {
+    if (!["basic", "premium"].includes(name) || !String(flutterwavePlanId || "").trim() || !Number.isFinite(Number(price)) || Number(price) <= 0) {
         return res.status(400).json({
             code: "VALIDATION_ERROR",
-            message: "Missing required fields",
+            message: "A valid plan name, Flutterwave plan ID, and positive price are required",
         });
+    }
+    if (!["monthly", "yearly"].includes(interval) || !Array.isArray(features)) {
+        return res.status(400).json({ code: "VALIDATION_ERROR", message: "Invalid interval or features" });
     }
 
     const existing = await Plan.findOne({ name });
@@ -288,8 +296,11 @@ export const verifySubscriptionPayment = async (req: Request, res: Response) => 
             });
         }
 
-        // Extract tx_ref to get user and tier info
-        const txRef = data.tx_ref;
+        const paymentUserId = data.meta?.userId || data.meta?.user_id;
+        const paymentPlanId = data.meta?.planId || data.meta?.plan_id;
+        if (!paymentUserId || String(paymentUserId) !== String(user._id)) {
+            return res.status(403).json({ status: "failed", message: "This transaction belongs to another account" });
+        }
         
         // Check if subscription already exists for this transaction
         const existingHistory = await PaymentHistory.findOne({ 
@@ -304,17 +315,14 @@ export const verifySubscriptionPayment = async (req: Request, res: Response) => 
             });
         }
 
-        // Find the plan based on the amount paid
-        const plan = await Plan.findOne({ 
-            price: data.amount,
-            isActive: true 
-        });
+        // Resolve the exact plan captured when checkout was initialized. Legacy
+        // transactions may fall back to amount, but must still match currency.
+        const plan = paymentPlanId
+            ? await Plan.findOne({ _id: paymentPlanId, isActive: true })
+            : await Plan.findOne({ price: data.amount, currency: String(data.currency).toUpperCase(), isActive: true });
 
-        if (!plan) {
-            return res.status(404).json({ 
-                status: "failed",
-                message: "Plan not found for this payment amount" 
-            });
+        if (!plan || Number(data.amount) < plan.price || String(data.currency).toUpperCase() !== plan.currency.toUpperCase()) {
+            return res.status(400).json({ status: "failed", message: "Payment does not match an active subscription plan" });
         }
 
         // Check if user already has an active subscription

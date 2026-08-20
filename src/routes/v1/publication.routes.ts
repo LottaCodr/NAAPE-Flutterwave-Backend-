@@ -17,7 +17,7 @@ import { requireSubscription } from "../../middleware/require.subscription.middl
 const router = express.Router();
 
 // Public route - anyone can view approved publications
-router.get("/", getAllPublications);
+router.get("/", optionalProtect, getAllPublications);
 
 // Protected route for logged-in users (fetch all my publications)
 router.get(
@@ -52,19 +52,8 @@ router.post(
 );
 
 // Fetch a specific publication - REQUIRES ACTIVE SUBSCRIPTION for members to view
-router.get(
-    "/:id",
-    protect,
-    (req, res, next) => {
-        // Admins and editors bypass subscription check
-        if (req.user && (req.user.role === "admin" || req.user.role === "editor")) {
-            return next();
-        }
-        // Members need active subscription
-        return requireSubscription(req, res, next);
-    },
-    getSinglePublication
-);
+// Approved publications are public. Optional auth lets authors preview pending work.
+router.get("/:id", optionalProtect, getSinglePublication);
 
 // Update a specific publication belonging to logged-in user
 router.patch(

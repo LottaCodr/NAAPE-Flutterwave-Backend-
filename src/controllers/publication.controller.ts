@@ -82,16 +82,18 @@ export const createPublication = async (req: Request, res: Response) => {
 export const getAllPublications = async (req: Request, res: Response) => {
     try {
         const { status } = req.query;
-
-        const filter: any = {};
-
-        // Only apply status filter if provided AND valid
-        if (status && ["approved"].includes(status as string)) {
+        const userRole = req.user?.role;
+        const canModerate = userRole === "admin" || userRole === "editor";
+        const allowedStatuses = ["pending", "approved", "rejected"];
+        // Guests and members must never receive unpublished content.
+        const filter: Record<string, unknown> = { status: "approved" };
+        if (canModerate && typeof status === "string" && allowedStatuses.includes(status)) {
             filter.status = status;
         }
 
         const publications = await Publication.find(filter)
-            .populate("author", "name email role");
+            .populate("author", "name role")
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             message: "All publications fetched successfully",
@@ -230,7 +232,7 @@ export const getMyPublications = async (req: Request, res: Response) => {
         }
 
         const publications = await Publication.find(filter)
-            .populate("author", "name email role")
+            .populate("author", "name role")
             .sort({ createdAt: -1 })
             .select("title category status image createdAt updatedAt content");
 
@@ -253,7 +255,7 @@ export const getSinglePublication = async (req: Request, res: Response) => {
     }
 
     try {
-        const publication = await Publication.findById(req.params.id).populate("author", "name email role");
+        const publication = await Publication.findById(req.params.id).populate("author", "name role");
 
         if (!publication) {
             return res.status(404).json({ message: "Publication not found" })
