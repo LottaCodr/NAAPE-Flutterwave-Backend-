@@ -28,9 +28,17 @@ export const createEvent = async (req, res) => {
             price
         } = req.body;
 
+        if (!title?.trim() || !location?.trim() || !date || Number.isNaN(new Date(date).getTime())) {
+            return res.status(400).json({ message: "A title, valid date, and location are required" });
+        }
+        const paid = isPaid === true || isPaid === "true";
+        const numericPrice = Number(price || 0);
+        if (paid && (!Number.isFinite(numericPrice) || numericPrice <= 0)) {
+            return res.status(400).json({ message: "Paid events require a valid price greater than zero" });
+        }
+
         // IMAGE FILE OR FALLBACK URL
         const imageUrl = req.file ? req.file.path : req.body.image || null;
-
         const adminId = req.user.id;
 
         const event = await Event.create({
@@ -41,8 +49,8 @@ export const createEvent = async (req, res) => {
             currency,
             description,
             createdBy: adminId,
-            isPaid,
-            price
+            isPaid: paid,
+            price: paid ? numericPrice : 0
         });
 
         await Notification.create({
@@ -93,7 +101,7 @@ export const createEvent = async (req, res) => {
 
 export const getAllEvents = async (req, res) => {
     try {
-        const events = await Event.find().sort({ createdAt: -1 });
+        const events = await Event.find().select("-registeredUsers -payments").sort({ createdAt: -1 });
         res.status(200).json(events);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -102,7 +110,7 @@ export const getAllEvents = async (req, res) => {
 
 export const getSingleEvent = async (req, res) => {
     try {
-        const event = await Event.findById(req.params.id);
+        const event = await Event.findById(req.params.id).select("-registeredUsers -payments");
 
         if (!event) return res.status(404).json({ message: "Event not found" });
 
@@ -262,6 +270,9 @@ export const verifyEventPayment = async (req: Request, res: Response) => {
                 transactionId: data.id
             });
         }
+        if (!req.user || String(req.user._id) !== String(userId)) {
+            return res.status(403).json({ status: "failed", message: "This transaction belongs to another account" });
+        }
 
         const event = await Event.findById(eventId);
         if (!event) {
@@ -270,6 +281,10 @@ export const verifyEventPayment = async (req: Request, res: Response) => {
                 message: "Event not found",
                 transactionId: data.id
             });
+        }
+
+        if (Number(data.amount) < Number(event.price) || String(data.currency).toUpperCase() !== event.currency.toUpperCase()) {
+            return res.status(400).json({ status: "failed", message: "Payment amount or currency does not match the event" });
         }
 
         // Prevent duplicate processing
@@ -446,8 +461,9 @@ export const getUserEvents = async (req: Request, res: Response) => {
                 p.user.equals(userObjectId) && p.status === "successful"
             );
 
+            const { payments: _payments, registeredUsers: _registeredUsers, ...safeEvent } = event.toObject();
             return {
-                ...event.toObject(),
+                ...safeEvent,
                 userPayment: payment ? {
                     amount: payment.amount,
                     transactionId: payment.transactionId,

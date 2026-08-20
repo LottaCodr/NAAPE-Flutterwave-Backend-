@@ -4,19 +4,20 @@ import sendEmail from "../utils/sendEmail";
 
 export const forgotPassword = async (req, res) => {
     const { email } = req.body;
+    if (typeof email !== "string" || !email.trim()) {
+        return res.status(400).json({ message: "A valid email address is required" });
+    }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.trim().toLowerCase() }).select("+password");
     if (!user) {
         return res.status(200).json({
             message: "If this email exists, a reset link has been sent",
         });
     }
 
-    // Check if user is Google-authenticated
+    // Keep the response indistinguishable from an unknown email to prevent account discovery.
     if (user.authProvider === "google" && !user.password) {
-        return res.status(400).json({
-            message: "This account uses Google Sign-In. Please sign in with Google.",
-        });
+        return res.status(200).json({ message: "If this email exists, a reset link has been sent" });
     }
 
     const resetToken = user.getResetPasswordToken();
@@ -55,8 +56,8 @@ export const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
 
-    if (!password) {
-        return res.status(400).json({ message: "Password is required" });
+    if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+        return res.status(400).json({ message: "Password must be between 8 and 128 characters" });
     }
 
     const hashedToken = crypto
@@ -67,7 +68,7 @@ export const resetPassword = async (req, res) => {
     const user = await User.findOne({
         resetPasswordToken: hashedToken,
         resetPasswordExpire: { $gt: Date.now() },
-    });
+    }).select("+resetPasswordToken +resetPasswordExpire +password");
 
     if (!user) {
         return res.status(400).json({ message: "Invalid or expired reset token" });

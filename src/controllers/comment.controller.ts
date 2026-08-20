@@ -12,9 +12,11 @@ export const addComment = async (req: Request, res: Response) => {
 
         const userId = (req as any).user.id;
 
-        if (!text) {
-            return res.status(400).json({ message: "Comment cannot be empty" });
+        if (typeof text !== "string" || !text.trim() || text.length > 2_000) {
+            return res.status(400).json({ message: "Comment must be between 1 and 2,000 characters" });
         }
+        const targetPublication = await Publication.findOne({ _id: publicationId, status: "approved" });
+        if (!targetPublication) return res.status(404).json({ message: "Publication not found" });
 
         const comment = await Comment.create({
             publication: publicationId,
@@ -64,7 +66,7 @@ export const getComments = async (req: Request, res: Response) => {
         const { publicationId } = req.params;
 
         const comments = await Comment.find({ publication: publicationId })
-            .populate("user", "name email role")
+            .populate("user", "name role")
             .sort({ createdAt: -1 });
 
         res.status(200).json({ data: comments });

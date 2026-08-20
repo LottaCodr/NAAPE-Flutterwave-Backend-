@@ -43,26 +43,22 @@ export const updateProfile = async (req, res) => {
             user.name = req.body.name;
         }
 
-        // Update profile object
-        if (req.body.profile) {
-            const parsedProfile = JSON.parse(req.body.profile);
-            user.profile = {
-                ...user.profile,
-                ...parsedProfile,
-            };
-        }
+        const parseObject = (value: unknown, field: string) => {
+            if (typeof value === "object" && value !== null && !Array.isArray(value)) return value;
+            if (typeof value === "string") {
+                try {
+                    const parsed = JSON.parse(value);
+                    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) return parsed;
+                } catch { /* handled below */ }
+            }
+            throw Object.assign(new Error(`${field} must be a valid JSON object`), { status: 400 });
+        };
 
-        // Update professional object
-        // Using JSON.parse directly on req.body.professional risks crashing the server if invalid JSON is sent.
-        // An invalid JSON string sent from the client will throw an exception here,
-        // causing your try/catch to handle it and return a generic 500 error,
-        // which makes it hard for clients to know the request body was malformed.
+        if (req.body.profile) {
+            user.profile = { ...user.profile, ...parseObject(req.body.profile, "profile") };
+        }
         if (req.body.professional) {
-            const parsedProfessional = JSON.parse(req.body.professional);
-            user.professional = {
-                ...user.professional,
-                ...parsedProfessional,
-            };
+            user.professional = { ...user.professional, ...parseObject(req.body.professional, "professional") };
         }
 
         // Handle image replacement
@@ -87,7 +83,8 @@ export const updateProfile = async (req, res) => {
             message: "Profile updated successfully",
             data: sanitizedUser,
         });
-    } catch (error) {
+    } catch (error: any) {
+        if (error?.status === 400) return res.status(400).json({ message: error.message });
         console.error("Update profile error:", error);
         res.status(500).json({ message: "Profile update failed" });
     }
@@ -119,16 +116,20 @@ export const updateUserRole = async (req: Request, res: Response) => {
             });
         }
 
+        const role = req.body.role || "admin";
+        if (!["admin", "editor", "member"].includes(role)) {
+            return res.status(400).json({ message: "Role must be admin, editor, or member" });
+        }
         const user = await User.findByIdAndUpdate(
             id,
-            { role: "admin" },
-            { new: true }
+            { role },
+            { new: true, runValidators: true }
         ).select("-password");
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
         res.status(200).json({
-            message: "User successfully promoted to admin",
+            message: `User role updated to ${role}`,
             user,
         });
     } catch (error: any) {
@@ -167,6 +168,9 @@ export const changePassword = async (req, res) => {
 
         if (newPassword !== confirmPassword) {
             return res.status(400).json({ message: "New passwords do not match." });
+        }
+        if (typeof newPassword !== "string" || newPassword.length < 8 || newPassword.length > 128) {
+            return res.status(400).json({ message: "New password must be between 8 and 128 characters." });
         }
 
         // 2️⃣ Get user WITH password

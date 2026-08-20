@@ -55,7 +55,7 @@ export const createNews = async (req: Request, res: Response) => {
 // Public: Get all news
 export const getAllNews = async (_req: Request, res: Response) => {
     try {
-        const news = await News.find().populate("author", "name email");
+        const news = await News.find().populate("author", "name");
 
         res.status(200).json({
             count: news.length,
@@ -71,7 +71,7 @@ export const getSingleNews = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const news = await News.findById(id).populate("author", "name email");
+        const news = await News.findById(id).populate("author", "name");
         if (!news) return res.status(404).json({ message: "News not found" });
 
         res.status(200).json(news);

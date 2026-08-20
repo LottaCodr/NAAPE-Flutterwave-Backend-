@@ -14,6 +14,13 @@ interface EmailOptions {
 
 const sendEmail = async ({ to, subject, text, html }: EmailOptions) => {
     try {
+        if (!process.env.SENDGRID_API_KEY) {
+            if (process.env.NODE_ENV !== "production") {
+                console.info(`[EMAIL] Skipped "${subject}" to ${to}: SENDGRID_API_KEY is not configured`);
+                return;
+            }
+            throw new Error("Email service is not configured");
+        }
         console.log(`[EMAIL] Attempting to send email to: ${to}`);
         console.log(`[EMAIL] Subject: ${subject}`);
         

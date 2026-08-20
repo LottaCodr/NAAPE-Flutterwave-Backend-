@@ -1,121 +1,80 @@
 import { Request, Response } from "express";
 import MembershipForm from "../models/MembershipForm";
+import sendEmail from "../utils/sendEmail";
 
-// Create a new membership form
-import sgMail from "@sendgrid/mail";
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const createMembershipForm = async (req: Request, res: Response) => {
     try {
-        // 1. Save the membership form to the database
+        const { name, email, tel, address, signature, date } = req.body;
+        if (![name, email, tel, address, signature, date].every(Boolean) || !EMAIL.test(String(email))) {
+            return res.status(400).json({ message: "Name, valid email, telephone, address, signature and date are required" });
+        }
+
         const form = await MembershipForm.create(req.body);
-
-        // 2. Prepare fields to email
-        const {
-            name,
-            tel,
-            email,
-            address,
-            designation,
-            dateOfEmployment,
-            section,
-            qualification,
-            licenseNo,
-            employer,
-            rank,
-            signature,
-            date
-        } = form;
-
-        // Format additional fields to string
-        const formatted = [
-            `Address: ${address}`,
-            designation ? `Designation: ${designation}` : "",
-            dateOfEmployment ? `Date of Employment: ${dateOfEmployment instanceof Date ? dateOfEmployment.toISOString().slice(0, 10) : dateOfEmployment}` : "",
-            section ? `Section: ${section}` : "",
-            qualification ? `Qualification: ${qualification}` : "",
-            licenseNo ? `License No: ${licenseNo}` : "",
-            employer ? `Employer: ${employer}` : "",
-            rank ? `Rank: ${rank}` : "",
-            `Signature: ${signature}`,
-            `Date: ${date instanceof Date ? date.toISOString().slice(0, 10) : date}`
+        const details = [
+            `Name: ${form.name}`,
+            `Email: ${form.email}`,
+            `Telephone: ${form.tel}`,
+            `Address: ${form.address}`,
+            form.designation && `Designation: ${form.designation}`,
+            form.dateOfEmployment && `Date of employment: ${form.dateOfEmployment.toISOString().slice(0, 10)}`,
+            form.section && `Section: ${form.section}`,
+            form.qualification && `Qualification: ${form.qualification}`,
+            form.licenseNo && `License number: ${form.licenseNo}`,
+            form.employer && `Employer: ${form.employer}`,
+            form.rank && `Rank: ${form.rank}`,
+            `Submitted: ${form.date.toISOString().slice(0, 10)}`,
         ].filter(Boolean).join("\n");
 
-        // 3. Send email to NAAPE Admin
-        await sgMail.send({
-            to: "info@naape.org.ng",
-            from: "no-reply@naape.org.ng",
-            subject: "New NAAPE Membership Application",
-            text: `Name: ${name}\nTel: ${tel}\n\n${formatted}`,
-        });
-
-        // 4. Confirmation email to applicant, 
-        if (typeof email === "string" && email.includes("@")) {
-            await sgMail.send({
-                to: email,
-                from: "no-reply@naape.org.ng",
+        // Email delivery is a side effect; a temporary provider outage must not lose
+        // or misreport an application that has already been stored successfully.
+        Promise.allSettled([
+            sendEmail({
+                to: process.env.MEMBERSHIP_ADMIN_EMAIL || "info@naape.org.ng",
+                subject: "New NAAPE Membership Application",
+                text: details,
+            }),
+            sendEmail({
+                to: form.email,
                 subject: "NAAPE Membership Form Received",
-                text: `Hello ${name},\n\nYour membership application has been received.\nWe will contact you shortly.\n\nNAAPE Secretariat`,
-            });
-        }
+                text: `Hello ${form.name},\n\nYour membership application has been received. We will contact you shortly.\n\nNAAPE Secretariat`,
+            }),
+        ]).then((results) => results.forEach((result) => {
+            if (result.status === "rejected") console.error("Membership email failed:", result.reason);
+        }));
 
-        res.status(201).json(form);
-    } catch (err: any) {
-        console.error("Membership form creation/email error:", err);
-        res.status(400).json({ error: err.message || "Failed to submit membership form" });
+        return res.status(201).json({
+            message: "Your membership application has been received",
+            applicationId: form._id,
+        });
+    } catch (error: any) {
+        return res.status(400).json({ message: error.message || "Failed to submit membership form" });
     }
 };
 
-// Get all membership forms
 export const getAllMembershipForms = async (_req: Request, res: Response) => {
-    try {
-        const forms = await MembershipForm.find().sort({ createdAt: -1 });
-        res.json(forms);
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+    const forms = await MembershipForm.find().sort({ createdAt: -1 });
+    res.json({ count: forms.length, data: forms });
 };
 
-// Get a single membership form by ID
 export const getMembershipFormById = async (req: Request, res: Response) => {
-    try {
-        const form = await MembershipForm.findById(req.params.id);
-        if (!form) {
-            return res.status(404).json({ error: "Membership form not found" });
-        }
-        res.json(form);
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+    const form = await MembershipForm.findById(req.params.id);
+    if (!form) return res.status(404).json({ message: "Membership form not found" });
+    res.json({ data: form });
 };
 
-// Update a membership form by ID
 export const updateMembershipForm = async (req: Request, res: Response) => {
-    try {
-        const form = await MembershipForm.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
-        if (!form) {
-            return res.status(404).json({ error: "Membership form not found" });
-        }
-        res.json(form);
-    } catch (err: any) {
-        res.status(400).json({ error: err.message });
-    }
+    const form = await MembershipForm.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+    });
+    if (!form) return res.status(404).json({ message: "Membership form not found" });
+    res.json({ message: "Membership form updated", data: form });
 };
 
-// Delete a membership form by ID
 export const deleteMembershipForm = async (req: Request, res: Response) => {
-    try {
-        const form = await MembershipForm.findByIdAndDelete(req.params.id);
-        if (!form) {
-            return res.status(404).json({ error: "Membership form not found" });
-        }
-        res.status(204).send();
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
-    }
+    const form = await MembershipForm.findByIdAndDelete(req.params.id);
+    if (!form) return res.status(404).json({ message: "Membership form not found" });
+    res.status(204).send();
 };

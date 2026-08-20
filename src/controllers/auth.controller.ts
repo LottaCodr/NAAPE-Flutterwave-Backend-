@@ -7,9 +7,19 @@ import { welcomeEmailHTML } from "../utils/emailTemplatesHTML";
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
+        if (typeof name !== "string" || name.trim().length < 2) {
+            return res.status(400).json({ message: "Name must be at least 2 characters" });
+        }
+        if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ message: "A valid email address is required" });
+        }
+        if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+            return res.status(400).json({ message: "Password must be between 8 and 128 characters" });
+        }
         const normalizedEmail = email.trim().toLowerCase();
-        const user = await User.create({ name, email: normalizedEmail, password, role });
+        // Public registration must never accept a privileged role from the client.
+        const user = await User.create({ name: name.trim(), email: normalizedEmail, password, role: "member" });
 
         // Send welcome email
         try {
@@ -29,7 +39,7 @@ export const registerUser = async (req: Request, res: Response) => {
             _id: user._id,
             name: user.name,
             email: user.email,
-            token: generateToken(user._id as string, user.role as "admin" | "editor" | "member"),
+            token: generateToken(String(user._id), user.role),
         });
     } catch (error: any) {
         // ✅ Handle duplicate email error
@@ -45,8 +55,11 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
+        if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
         const normalizedEmail = email.trim().toLowerCase();
-        const user = await User.findOne({ email: normalizedEmail });
+        const user = await User.findOne({ email: normalizedEmail }).select("+password");
 
         if (!user) {
             return res.status(401).json({ message: "Invalid credentials" });
@@ -79,7 +92,7 @@ export const loginUser = async (req: Request, res: Response) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                token: generateToken(user._id as string, user.role as "admin" | "editor" | "member"),
+                token: generateToken(String(user._id), user.role),
             });
         } else {
             res.status(401).json({ message: "Invalid credentials" });

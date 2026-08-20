@@ -15,7 +15,7 @@ const PaymentHistorySchema = new Schema<IPaymentHistory>(
     {
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         type: { type: String, required: true },
-        transactionId: { type: String, required: true },
+        transactionId: { type: String, required: true, unique: true, index: true },
         amount: { type: Number, required: true },
         currency: { type: String, default: "NGN" },
         status: { type: String, required: true },
